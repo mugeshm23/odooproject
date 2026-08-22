@@ -1,0 +1,6 @@
+{
+  "name": "DayFlow - AI-Powered HRMS",
+  "description": "An intelligent Human Resource Management System connecting employee productivity, wellbeing, attendance, leave, payroll, and AI-powered workforce insights.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
