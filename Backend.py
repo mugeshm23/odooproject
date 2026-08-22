@@ -19,6 +19,6 @@ def employees():
     return [
         {"id": 1, "name": "Hasan", "role": "Employee"},
         {"id": 2, "name": "Sugumaran", "role": "Employee"},
-        {"id": 3, "name": "Harisanth", "role": "Employee"},
+        {"id": 3, "name": "Harishanth", "role": "Employee"},
         {"id": 4, "name": "Mugesh", "role": "Employee"}
     ]
