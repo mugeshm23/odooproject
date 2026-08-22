@@ -4,7 +4,6 @@ from pydantic import BaseModel
 
 app = FastAPI(title="Dayflow HRMS API")
 
-# Allow frontend to connect
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,6 +12,7 @@ app.add_middleware(
 )
 
 
+# Employee model
 class Employee(BaseModel):
     id: int | None = None
     name: str
@@ -22,6 +22,7 @@ class Employee(BaseModel):
     status: str = "Active"
 
 
+# Sample employee data
 employees = [
     {
         "id": 1,
@@ -67,12 +68,53 @@ def home():
     }
 
 
+# Dashboard
+@app.get("/api/dashboard")
+def dashboard():
+
+    total = len(employees)
+    active = sum(e["status"] == "Active" for e in employees)
+    inactive = total - active
+
+    departments = {}
+
+    for employee in employees:
+        dept = employee["department"]
+        departments[dept] = departments.get(dept, 0) + 1
+
+    return {
+        "total_employees": total,
+        "active_employees": active,
+        "inactive_employees": inactive,
+        "departments": departments,
+        "attendance": {
+            "present": 32,
+            "absent": 4,
+            "late": 3
+        },
+        "leave": {
+            "pending": 5,
+            "approved": 8,
+            "rejected": 2
+        }
+    }
+
+
 # Get all employees
 @app.get("/api/employees")
-def get_employees():
+def get_employees(department: str | None = None):
+
+    if department:
+        result = [
+            e for e in employees
+            if e["department"].lower() == department.lower()
+        ]
+    else:
+        result = employees
+
     return {
-        "count": len(employees),
-        "employees": employees
+        "count": len(result),
+        "employees": result
     }
 
 
@@ -94,11 +136,10 @@ def get_employee(employee_id: int):
 @app.get("/api/search")
 def search_employee(name: str):
 
-    result = []
-
-    for employee in employees:
-        if name.lower() in employee["name"].lower():
-            result.append(employee)
+    result = [
+        employee for employee in employees
+        if name.lower() in employee["name"].lower()
+    ]
 
     return {
         "count": len(result),
@@ -109,6 +150,14 @@ def search_employee(name: str):
 # Add employee
 @app.post("/api/employees")
 def add_employee(employee: Employee):
+
+    # Check duplicate email
+    for existing in employees:
+        if existing["email"].lower() == employee.email.lower():
+            raise HTTPException(
+                status_code=400,
+                detail="Email already exists"
+            )
 
     new_id = max([e["id"] for e in employees], default=0) + 1
 
@@ -125,17 +174,22 @@ def add_employee(employee: Employee):
 
 # Update employee
 @app.put("/api/employees/{employee_id}")
-def update_employee(employee_id: int, updated_employee: Employee):
+def update_employee(
+    employee_id: int,
+    updated_employee: Employee
+):
 
     for employee in employees:
 
         if employee["id"] == employee_id:
 
-            employee["name"] = updated_employee.name
-            employee["email"] = updated_employee.email
-            employee["role"] = updated_employee.role
-            employee["department"] = updated_employee.department
-            employee["status"] = updated_employee.status
+            employee.update({
+                "name": updated_employee.name,
+                "email": updated_employee.email,
+                "role": updated_employee.role,
+                "department": updated_employee.department,
+                "status": updated_employee.status
+            })
 
             return {
                 "message": "Employee updated successfully",
@@ -155,6 +209,7 @@ def delete_employee(employee_id: int):
     for employee in employees:
 
         if employee["id"] == employee_id:
+
             employees.remove(employee)
 
             return {
@@ -165,25 +220,3 @@ def delete_employee(employee_id: int):
         status_code=404,
         detail="Employee not found"
     )
-
-
-# Dashboard
-@app.get("/api/dashboard")
-def dashboard():
-
-    total = len(employees)
-
-    active = 0
-    inactive = 0
-
-    for employee in employees:
-        if employee["status"] == "Active":
-            active += 1
-        else:
-            inactive += 1
-
-    return {
-        "total_employees": total,
-        "active_employees": active,
-        "inactive_employees": inactive
-    }
