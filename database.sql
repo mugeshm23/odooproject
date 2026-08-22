@@ -8,7 +8,7 @@ CREATE TABLE departments (
     code VARCHAR(20) UNIQUE,
     manager_id INT, -- Foreign key added below via ALTER to prevent circular dependency
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 );
 
 -- 3. USERS (EMPLOYEES) TABLE
